@@ -1,18 +1,26 @@
 {
   "name": "to-do-list",
-  "displayName": "to-do-list",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "todo-list",
+  "description": "一款简约好用的待办事项工具",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.73.0"
   },
   "categories": [
+    "Notebooks",
     "Other"
+  ],
+  "keywords": [
+    "todo",
+    "待办事项",
+    "list",
+    "todoList"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/likaiweb/vscode-todolist.git"
   },
+  "icon": "resources/logo.png",
   "publisher": "coderRick",
   "activationEvents": [
     "onView:to-do-list"
@@ -35,7 +43,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "release": "npm version patch --no-git-tag-version && vsce publish"
   },
   "devDependencies": {
     "@types/vscode": "^1.73.0",
