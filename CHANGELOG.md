@@ -1,9 +1,6 @@
 # Change Log
 
-All notable changes to the "to-do-list" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+| Version | Date       | Changelog                                |
+| ------- | ---------- | ---------------------------------------- |
+| 0.0.4   | 2022-12-06 | **【新增】** todo 待办事项功能           |
+| 0.0.5   | 2023-04-27 | **【修改】** 修改使用逻辑为 iOS 提醒事项 |

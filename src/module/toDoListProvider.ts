@@ -42,7 +42,7 @@ export default class ToDoListProvider implements vscode.WebviewViewProvider {
     <title>toDoList</title>
     <style>
       :root {
-        --theme: rgba(136, 136, 136, 1);
+        --theme: rgb(136, 136, 136);
         --theme2: rgba(136, 136, 136, 0.6);
       }
       html,
@@ -64,6 +64,25 @@ export default class ToDoListProvider implements vscode.WebviewViewProvider {
       .clear div {
         margin: 0 5px;
         cursor: pointer;
+      }
+      .clear .showIcon {
+        width: 30px;
+        height: 30px;
+        background: url("https://yppphoto.hellobixin.com/yppphoto/bb6e49a5feef4b6799aa27c9a4d03eda.png")
+          center top;
+        background-size: 100%;
+      }
+      .clear .showIcon.showAll {
+        background: url("https://yppphoto.hellobixin.com/yppphoto/e4d53acc2e1c4131bbf90461070d2a68.png")
+          center top;
+        background-size: 100%;
+      }
+      .clear .clearIcon {
+        width: 20px;
+        height: 20px;
+        background: url("https://yppphoto.hellobixin.com/yppphoto/42ab07cf0501426bac7aaa16e3157cbf.png")
+          center top;
+        background-size: 100%;
       }
       .list {
         display: flex;
@@ -146,8 +165,17 @@ export default class ToDoListProvider implements vscode.WebviewViewProvider {
     <div id="app">
       <div class="clear">
         <span>已完成事项（{{doneList.length}}）</span>
-        <div @click="saveData">归档</div>
-        <div @click="clearSaveData">清空</div>
+        <div
+          class="showIcon"
+          :class="showAll&&'showAll'"
+          @click="showAll = !showAll"
+          :title="showAll?'隐藏已完成事项':'显示全部事项'"
+        ></div>
+        <div
+          class="clearIcon"
+          title="清空已完成事项"
+          @click="clearDoneData"
+        ></div>
       </div>
       <div class="list">
         <div class="item">
@@ -172,7 +200,7 @@ export default class ToDoListProvider implements vscode.WebviewViewProvider {
             <div class="text">{{v.value}}</div>
             <div class="date">时间：{{v.date}}</div>
           </div>
-          <div class="removeBtn" @click="removeData(i)">×</div>
+          <div class="removeBtn" v-if="!v.done" @click="removeData(i)">×</div>
         </div>
       </div>
     </div>
@@ -186,16 +214,25 @@ export default class ToDoListProvider implements vscode.WebviewViewProvider {
   new Vue({
     el: "#app",
     data: {
-      list: localStorage[todoList] ? JSON.parse(localStorage[todoList]) : [],
+      undoneList: localStorage[todoList]
+        ? JSON.parse(localStorage[todoList])
+        : [],
       doneList: localStorage[todoList]
         ? JSON.parse(localStorage[doneList])
         : [],
       value: "",
+      showAll: false,
+    },
+    computed: {
+      list({ undoneList, doneList, showAll }) {
+        return showAll ? [...undoneList, ...doneList] : undoneList;
+      },
     },
     methods: {
+      // 添加
       addData() {
         if (!this.value) return;
-        this.list.unshift({
+        this.undoneList.unshift({
           value: this.value,
           date: dayjs().format("MM-DD HH:mm:ss"),
           done: false,
@@ -203,30 +240,23 @@ export default class ToDoListProvider implements vscode.WebviewViewProvider {
         this.value = "";
         localStorage[todoList] = JSON.stringify(this.list);
       },
+      // 删除
       removeData(index) {
-        this.list.splice(index, 1);
+        this.undoneList.splice(index, 1);
         localStorage[todoList] = JSON.stringify(this.list);
       },
-      saveData() {
-        this.doneList = [...this.doneList, ...this.list.filter((v) => v.done)];
-        this.list = [...this.list.filter((v) => !v.done)];
-        localStorage[todoList] = JSON.stringify(this.list);
-        localStorage[doneList] = JSON.stringify(this.doneList);
-        vscode.postMessage({
-          command: "save",
-          text: "完成事项已归档！",
-        });
-      },
-      clearSaveData() {
+      // 清除已完成
+      clearDoneData() {
         this.doneList = [];
         localStorage[doneList] = JSON.stringify(this.doneList);
         vscode.postMessage({
           command: "clearSave",
-          text: "已清空归档数据！",
+          text: "已清空完成事项！",
         });
       },
+      // 完成
       handleDone(index) {
-        this.list.forEach((v, i) => {
+        this.undoneList.forEach((v, i) => {
           if (i === index) {
             v.done = !v.done;
           }
@@ -237,11 +267,13 @@ export default class ToDoListProvider implements vscode.WebviewViewProvider {
         }, 2000);
       },
       sortList() {
-        this.list = [
-          ...this.list.filter((v) => !v.done),
-          ...this.list.filter((v) => v.done),
+        this.doneList = [
+          ...this.undoneList.filter((v) => v.done),
+          ...this.doneList,
         ];
-        localStorage[todoList] = JSON.stringify(this.list);
+        this.undoneList = [...this.undoneList.filter((v) => !v.done)];
+        localStorage[todoList] = JSON.stringify(this.undoneList);
+        localStorage[doneList] = JSON.stringify(this.doneList);
       },
     },
   });
